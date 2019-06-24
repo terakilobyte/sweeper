@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ChannelProvider } from '../app';
+import throttle from 'lodash/throttle';
 
 type iTimeMessage = {
   response: String;
@@ -19,7 +20,7 @@ const Main: React.FC<any> = ({ children }) => {
 
     channel.on('stop_time', msg => {
       setRunning(false);
-      console.log('stopped');
+      setTime(0)
     });
 
     // channel.push('start_timer', {});
@@ -28,28 +29,24 @@ const Main: React.FC<any> = ({ children }) => {
     };
   }, []);
 
-  const resetTimer = () => {
-    startTimer();
-  };
-
-  const stopTimer = () => {
+  const stopTimer = throttle(() => {
     setRunning(false);
     channel.push('stop_timer', {});
-  };
+  }, 1000);
 
-  const startTimer = () => {
+  const startTimer = throttle(() => {
     channel.push('stop_timer', {});
     setTimeout(() => {
       setRunning(true);
       channel.push('start_timer', {});
     }, 700);
-  };
+  }, 1000);
 
   return (
     <main role="main" className="container">
       <div>{time || ''}</div>
       <div>
-        <button onClick={running ? resetTimer : startTimer}>
+        <button onClick={startTimer}>
           {running ? 'Reset' : 'Start'} Time
         </button>
       </div>
